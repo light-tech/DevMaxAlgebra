@@ -1,0 +1,110 @@
+\documentclass{amsart}
+\usepackage{amsmath,xcolor}
+
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}
+\newtheorem*{remark}{Remark}
+\newtheorem*{example}{Example}
+
+\title{Mathematical Theory for Algebraic Expressions}
+\author{Lightech}
+
+\newcommand{\term}[1]{\textbf{#1}}
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+\maketitle
+
+\section{Formalization of Algebraic Expressions}
+
+\begin{defn}
+A \term{type} is a \emph{class} of mathematical objects such as
+\begin{itemize}
+\item Real Numbers $\R$,
+\item Complex Numbers,
+\item Matrices with Real entries,
+\item Sets,
+\item Functions such as $\R \times \R \rightarrow \R$ i.e. functions taking two real numbers and returning a real number. In general, a function type has the form $T_1 \times T_2 \times ... \times T_k \rightarrow T$ where $T_1, ..., T_k$ are the types of the inputs and $T$ is the type of the output. (The number $k$ is known as the \term{arity} of the function. Well-known examples are unary functions $T_1 \rightarrow T$ and binary operators $T_1 \times T_2 \rightarrow T$.)
+\end{itemize}
+
+Functions could be viewed as a \term{composite} type (type that is composed of other types). Another example might be tuples types i.e. the types of those $T_1 \times ... \times T_k$. Other types are \term{atomic}.
+\end{defn}
+
+\begin{remark}
+\begin{enumerate}
+\item If you are familiar with mathematical logic and set theory, Sets is a proper class in the terminology of set theory as there is no set containing of all sets. Type are not quite categories.
+\item For now we do not worry about \term{generic} types.
+\end{enumerate}
+\end{remark}
+
+\begin{defn}
+An \term{untyped language} is a set of symbols. A \term{typed language} consists of a set of symbols and their corresponding types.
+\end{defn}
+
+\begin{example}
+\begin{itemize}
+\item $L = \{+, -, x, y, 1\}$ is an untyped language consisting of 5 symbols.
+
+\item We have a similar typed language by adding type annotations:
+$$L = \left\{ \begin{array}{l} + : \R \times \R \rightarrow \R,\\ -: \R \times \R \rightarrow \R,\\ x : \R,\\ y : \R,\\ 1 : \R\end{array}\right\}$$
+\end{itemize}
+\end{example}
+
+\begin{remark}
+\begin{enumerate}
+\item At this stage, we do not associate any meaning to the symbols. In particular, the symbol $+$ does not have to mean "addition of real numbers". In other words, at this point, the symbols $+$ and $x$ are indistinguisable as long as they have the same type.
+\item Similarly, $1$ does not have to be the familiar number $1$. It is indistinguisable from $x$.
+\item We could have an arity annotation in untyped language.
+\item We assume that parentheses $($ and $)$ are NEVER in a language.
+\end{enumerate}
+\end{remark}
+
+\begin{defn}
+Given a fixed untyped language $L$. We can now define a concept of algebraic expressions recursively:
+\begin{itemize}
+\item Base case: Any symbol in $L$ is an algebraic expression.
+\item Recursion: If $E_0, ..., E_n$ are algebraic expressions then
+$$E_0(E_1, E_2, ..., E_n)$$
+also is.
+\end{itemize}
+\end{defn}
+
+\begin{example}
+$$+ \qquad x \qquad y \qquad +(x, y) \qquad -(+(x, 1), y) \qquad +(-(x))(y) \qquad +(-,x,y)$$
+are algebraic expressions. Note that weird things like $+(-, x, y)$ are not ruled out because of the lack of types. As remarked above, $-$ itself could be a "variable" like $x$. (Think of yourself as never learnt standard mathematics or imagining yourself as coming from an alien civilization.)
+\end{example}
+
+\begin{defn}
+Analogously, given a typed language $L$, we can define an algebraic language of type $T$ recursively:
+\begin{itemize}
+\item Base case: A symbol of type $T$ is an algebraic expression of type $T$.
+\item Recursion: If $E_0$ is an algebraic expression of function type $(T1, ..., T_n) -> T$ and $E_i$ is an algebraic expression of type $T_i$ for $i = 1, 2, ..., n$ the function application $$E_0(E_1, ...,E_n)$$ is an algebraic expression of type $T$.
+\end{itemize}
+\end{defn}
+
+\begin{example}
+Unlike the untyped case, we see that
+\begin{itemize}
+\item $+$ is an expression of type $\R \times \R \rightarrow \R$.
+\item $x$, $y$ and $+(x, y)$ are expressions of type $\R$. So is $+(+(x, y), y)$.
+\item $+(x, y, +(x, y))$ is a not an expression. Likewise $+(-)$ is not an algebraic expression because there is no way to come up with a type.
+\end{itemize}
+As you can see, the introduction of types removes non-sensical expressions in the untyped case.
+\end{example}
+
+\begin{remark}
+\begin{enumerate}
+\item The concept of algebraic expressions depends on the language! Different languages provides different algebraic expressions, just like adding new functions allows us to write more expressions in mathematics: In middle school, we only know of $+, -, \times, \div$ and our expressions are limited to these while in high school, we get to know more functions like square-root and can talk about expressions like $\sqrt{2x + 1}$.
+
+\item Types themselves could be put in the framework above: An example untyped language consists of $\{\R, \text{SETS}, \times, \rightarrow\}$.
+\end{enumerate}
+\end{remark}
+
+\section{Manipulations of Expressions}
+
+We have defined algebraic expressions in previous section. The concept is purely syntactic i.e. there is no associated meaning or interpretation. The similar concept is in the English language: grammar vs. meaning. For example, a simple English sentence structure consists of "Subject Verb Object" such as "I like patriotism." Grammatically, we can have many combinations such as "Cats love patriotism." but this sentence is really hard to understand, at least for human.
+
+In our study of algebraic expressions, giving interpretation or meaning is achieved by \term{evaluating the expression}.
+
+\end{document}
