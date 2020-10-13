@@ -7,10 +7,12 @@
 
 int main(int argc, const char **argv)
 {
-	Variable x("x");
-	Variable y("y");
-	Expression E = x + y;
-	E.print();
+	Symbol x("x");
+	Symbol y("y");
+	Expression* E = x + y;
+
+	if (E != nullptr)
+		E->print();
 
 	return 0;
 }

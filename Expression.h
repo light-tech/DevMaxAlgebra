@@ -20,6 +20,12 @@ public:
 		next = n;
 	}
 
+	template<typename T, typename ...Ts>
+	LTList(T d, Ts ...rest) {
+		data = d;
+		next = new LTList(rest...);
+	}
+
 	TElement data;
 	LTList<TElement> *next;
 };
@@ -41,35 +47,76 @@ class Expression {
 public:
 	class Type {
 		int classification; // Number, Set, Function, ...
+		int arity; // for tuples
 	};
 
-	LTList<Expression*> *application;
+	LTList<Expression*> *subexpressions;
 	Type *type;
 
 	Expression() {
-		application = nullptr;
+		subexpressions = nullptr;
 		type = nullptr;
 	}
 
-	void print();
+	template<typename ...Ts>
+	Expression* evaluate() {
+		return nullptr;
+	}
+
+	virtual void print() {
+		printExpressionList(subexpressions);
+	}
+
+	Expression* operator+(Expression const& another);
+
+private:
+	void printExpressionList(LTList<Expression*> *expressions) {
+		if (expressions != nullptr) {
+			expressions->data->print();
+			printf(" ");
+			printExpressionList(expressions->next);
+		}
+	}
 };
 
-// Constant are pre-defined standard mathematical objects such as
-//      [Numbers]      1, 1/2, \pi
-//      [Operator]     +, -, x, /, exp, sin, cos, ...
-class Constant : public Expression {
-public:
-};
-
-// Variable are user-defined symbols such as x, y, z, f, g, h, A, B, ...
-// Each variable should
-class Variable : public Expression {
+// A symbol in our language.
+class Symbol : public Expression {
 public:
 	const char *name;
 
-	Variable(const char *name) {
+	Symbol(const char *name) {
+		this->name = name;
+	}
+
+	virtual void print() { printf("%s", name); }
+};
+
+// Constant are pre-defined symbols such as
+//      [Numbers]      1, 1/2, \pi
+//      [Operator]     +, -, x, /, exp, sin, cos, ...
+// and are given standard bindings upon evaluation.
+// Non-constant symbols are variables like x, y, F.
+class Constant : public Symbol {
+public:
+	static Constant Add;
+	static Constant Subtract;
+	static Constant Multiply;
+	static Constant Divide;
+
+	Constant(const char *name) : Symbol(name) {
 		this->name = name;
 	}
 };
+
+Constant Constant::Add("+");
+Constant Constant::Subtract("-");
+Constant Constant::Multiply("x");
+Constant Constant::Divide("/");
+
+Expression* Expression::operator+(Expression const& another) {
+	auto result = new Expression();
+	result->subexpressions = new LTList<Expression*>(&Constant::Add, this, const_cast<Expression*>(&another));
+	return result;
+}
 
 #endif
