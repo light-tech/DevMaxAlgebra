@@ -5,6 +5,7 @@ Features and Examples
 ---------------------
 
 This library allows for defining, evaluating and manipulating algebraic expressions.
+The mathematical basis can be found in [MathBasis.tex](MathBasis.tex).
 
 Example Program:
 

@@ -11,6 +11,7 @@
 
 \newcommand{\term}[1]{\textbf{#1}}
 \newcommand{\R}{\mathbb{R}}
+\renewcommand{\S}{\mathbb{S}}
 
 \begin{document}
 
@@ -22,18 +23,22 @@
 A \term{type} is a \emph{class} of mathematical objects such as
 \begin{itemize}
 \item Real Numbers $\R$,
-\item Complex Numbers,
-\item Matrices with Real entries,
-\item Sets,
-\item Functions such as $\R \times \R \rightarrow \R$ i.e. functions taking two real numbers and returning a real number. In general, a function type has the form $T_1 \times T_2 \times ... \times T_k \rightarrow T$ where $T_1, ..., T_k$ are the types of the inputs and $T$ is the type of the output. (The number $k$ is known as the \term{arity} of the function. Well-known examples are unary functions $T_1 \rightarrow T$ and binary operators $T_1 \times T_2 \rightarrow T$.)
+\item Sets $\S$,
+
+\item Tuples type $T_1 \times T_2 \times ... \times T_k$ (the number $k$ is known as the \term{arity} of the function),
+
+\item Functions such as $\R \times \R \rightarrow \R$ i.e. functions taking two real numbers and returning a real number. In general, a function type has the form $T \rightarrow T'$ where $T$ and $T'$ are the types of the input and the output respectively.
+
+\item Other things that you are interested in such as Complex Numbers, Matrices with Real entries or strings of English letters.
 \end{itemize}
 
-Functions could be viewed as a \term{composite} type (type that is composed of other types). Another example might be tuples types i.e. the types of those $T_1 \times ... \times T_k$. Other types are \term{atomic}.
+Tuples and Functions could be viewed as a \term{composite} type (type that is composed of other types). Other types are usually \term{atomic}.
 \end{defn}
 
 \begin{remark}
 \begin{enumerate}
-\item If you are familiar with mathematical logic and set theory, Sets is a proper class in the terminology of set theory as there is no set containing of all sets. Type are not quite categories.
+\item If you are familiar with mathematical logic and set theory, Sets is a proper class in the terminology of set theory as there is no set containing of all sets. Type are not quite categories. Also, to account for this set theoretic complications, we should have used the word ``functional'' in place of functions.
+
 \item For now we do not worry about \term{generic} types.
 \end{enumerate}
 \end{remark}
@@ -48,6 +53,9 @@ An \term{untyped language} is a set of symbols. A \term{typed language} consists
 
 \item We have a similar typed language by adding type annotations:
 $$L = \left\{ \begin{array}{l} + : \R \times \R \rightarrow \R,\\ -: \R \times \R \rightarrow \R,\\ x : \R,\\ y : \R,\\ 1 : \R\end{array}\right\}$$
+
+\item A typed language for set theory could be
+$$L = \left\{ \begin{array}{l} \cup : \S \times \S \rightarrow \S,\\ \cap: \S \times \S \rightarrow \S,\\ \backslash : \S \times \S \rightarrow \S,\\ \times : \S \times \S \rightarrow \S, \\ \emptyset : \S, \\ x, y : \S  \end{array}\right\}$$
 \end{itemize}
 \end{example}
 
@@ -56,17 +64,21 @@ $$L = \left\{ \begin{array}{l} + : \R \times \R \rightarrow \R,\\ -: \R \times \
 \item At this stage, we do not associate any meaning to the symbols. In particular, the symbol $+$ does not have to mean "addition of real numbers". In other words, at this point, the symbols $+$ and $x$ are indistinguisable as long as they have the same type.
 \item Similarly, $1$ does not have to be the familiar number $1$. It is indistinguisable from $x$.
 \item We could have an arity annotation in untyped language.
-\item We assume that parentheses $($ and $)$ are NEVER in a language.
+\item We assume that parentheses and comma
+$$\mathbf{(} \qquad \mathbf{)} \qquad\mathbf{,}$$
+are NEVER in a language.
 \end{enumerate}
 \end{remark}
 
 \begin{defn}
 Given a fixed untyped language $L$. We can now define a concept of algebraic expressions recursively:
 \begin{itemize}
-\item Base case: Any symbol in $L$ is an algebraic expression.
-\item Recursion: If $E_0, ..., E_n$ are algebraic expressions then
-$$E_0(E_1, E_2, ..., E_n)$$
-also is.
+\item [{\it Base case}]: Any symbol in $L$ is an algebraic expression.
+\item [{\it Recursion}]: If $E_0, ..., E_n$ are algebraic expressions then
+$$(E_1, E_2, ..., E_n)$$
+and
+$$E_1 \quad E_2$$
+are also algebraic expressions.
 \end{itemize}
 \end{defn}
 
@@ -78,8 +90,13 @@ are algebraic expressions. Note that weird things like $+(-, x, y)$ are not rule
 \begin{defn}
 Analogously, given a typed language $L$, we can define an algebraic language of type $T$ recursively:
 \begin{itemize}
-\item Base case: A symbol of type $T$ is an algebraic expression of type $T$.
-\item Recursion: If $E_0$ is an algebraic expression of function type $(T1, ..., T_n) -> T$ and $E_i$ is an algebraic expression of type $T_i$ for $i = 1, 2, ..., n$ the function application $$E_0(E_1, ...,E_n)$$ is an algebraic expression of type $T$.
+\item [{\it Base case}]: A symbol of type $T$ is an algebraic expression of type $T$.
+
+\item [{\it Recursion 1}]: If $T = T_1 \times T_2 \times ... \times T_k$ and $E_i$ is an expression of type $T_i$ for $i = 1, 2, ..., n$ then
+$(E_1, ..., E_k)$
+is an algebraic expression of type $T$.
+
+\item [{\it Recursion 2}]: If $E_0$ is an algebraic expression of function type $T' \rightarrow T$ and $E_1$ is an algebraic expression of type $T'$ then the function application $$E_0 \quad E_1$$ is an algebraic expression of type $T$.
 \end{itemize}
 \end{defn}
 
@@ -87,6 +104,7 @@ Analogously, given a typed language $L$, we can define an algebraic language of 
 Unlike the untyped case, we see that
 \begin{itemize}
 \item $+$ is an expression of type $\R \times \R \rightarrow \R$.
+\item $(x, y)$ is an expression of type $\R \times \R$.
 \item $x$, $y$ and $+(x, y)$ are expressions of type $\R$. So is $+(+(x, y), y)$.
 \item $+(x, y, +(x, y))$ is a not an expression. Likewise $+(-)$ is not an algebraic expression because there is no way to come up with a type.
 \end{itemize}
@@ -95,16 +113,45 @@ As you can see, the introduction of types removes non-sensical expressions in th
 
 \begin{remark}
 \begin{enumerate}
-\item The concept of algebraic expressions depends on the language! Different languages provides different algebraic expressions, just like adding new functions allows us to write more expressions in mathematics: In middle school, we only know of $+, -, \times, \div$ and our expressions are limited to these while in high school, we get to know more functions like square-root and can talk about expressions like $\sqrt{2x + 1}$.
+\item The concept of algebraic expressions depends on the language! Different languages provides different algebraic expressions, just like adding new functions allows us to write more expressions in mathematics: In middle school, we only know of $+, -, \times, \div$ and our expressions are limited to these while in high school, we get to know more functions like square-root and can talk about expressions like $\sqrt{2x + 1}$. We should have defined more it more clearly via the term $L$-expression instead of just expression.
 
-\item Types themselves could be put in the framework above: An example untyped language consists of $\{\R, \text{SETS}, \times, \rightarrow\}$.
+\item Types themselves could be put in the framework above: An example untyped language consists of $\{\R, \S, \times, \rightarrow\}$.
+
+\item We could have added another recursion rule for function construction, namely, if $T$ is a function type $T_1 \rightarrow T_2$, $s \in L$ is a symbol of type $T_1$ in our language and $E$ is an expression of type $T_2$ then
+$$s \mapsto E$$
+is an expression of type $T$. (In this case, we could have reserved the symbol $\mapsto$ i.e. it should never be in a language just like parentheses and comma.)
 \end{enumerate}
 \end{remark}
 
-\section{Manipulations of Expressions}
+\section{Semantics of Expressions}
 
 We have defined algebraic expressions in previous section. The concept is purely syntactic i.e. there is no associated meaning or interpretation. The similar concept is in the English language: grammar vs. meaning. For example, a simple English sentence structure consists of "Subject Verb Object" such as "I like patriotism." Grammatically, we can have many combinations such as "Cats love patriotism." but this sentence is really hard to understand, at least for human.
 
 In our study of algebraic expressions, giving interpretation or meaning is achieved by \term{evaluating the expression}.
+
+From now on, we are mostly interested in typed language and expressions.
+
+\newcommand{\B}{\mathcal{B}}
+
+\begin{defn}
+Let $L$ be a typed language and $\B$ is a \term{binding} i.e. an association of each symbol with a value of correct type. $\B$ is ``like'' a function $L \rightarrow U$ where $U$ is a universal universe containing every perceivable mathematical objects so we use the standard notation $\B(s)$ to denote the value assigned to the symbol $s$.
+
+Let $E$ be an expression. The evaluation of $E$ with respect to $\B$, denoted $E[\B]$ is defined recursively:
+\begin{itemize}
+\item [{\it Base case}]: If $E$ is a symbol in $L$ then $E[\B]$ is just $\B(E)$.
+
+\item [{\it Recursion 1}]: If $E = (E_1, ..., E_k)$ then $E[\B]$ is the tuple $(E_1[\B], E_2[\B], ..., E_k[\B])$.
+
+\item [{\it Recursion 2}]: If $E = E_1 \quad E_2$ then $E[\B]$ is $E_1[\B](E_2[\B])$. That is, $E_1[\B]$ should give us some function $T \rightarrow T'$ and $E_2[\B]$ should give us a value of type $T$.
+\end{itemize}
+\end{defn}
+
+\begin{example}
+Consider the simple language $L = \{f : \R \times \R \rightarrow \R, x : \R, y : \R\}$ and binding $\B$ that assigns to $f$ the function $(\alpha, \beta) \mapsto \alpha + \beta$, to $x$ the number $1$ and to $y$ the number 2. Let $E = f(x, y)$. Then
+$$E[\B] = 1 + 2 = 3.$$
+
+If $\B'$ is another binding that assigns to $f$ the function $(\alpha, \beta) \mapsto \alpha \beta$ and the same values to $x$ and $y$ then
+$$E[\B'] = 1 \times 2 = 2.$$
+\end{example}
 
 \end{document}
