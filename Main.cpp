@@ -7,12 +7,19 @@
 
 int main(int argc, const char **argv)
 {
-	Symbol x("x");
-	Symbol y("y");
-	Expression* E = x + y;
+	Expression x("x");
+	Expression y("y");
+	auto E = x + y;
 
-	if (E != nullptr)
+	if (E != nullptr) {
+		printf("E = ");
 		E->print();
+	}
+
+	printf("\n");
+	auto F = Sin(x);
+	printf("F = ");
+	F.print();
 
 	return 0;
 }

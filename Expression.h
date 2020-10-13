@@ -47,15 +47,41 @@ class Expression {
 public:
 	class Type {
 		int classification; // Number, Set, Function, ...
-		int arity; // for tuples
+		int arity;          // Tuples
 	};
 
-	LTList<Expression*> *subexpressions;
-	Type *type;
+	// Kind of the expression corresponding to the base case and recursion
+	enum Kind {
+		Symbol,    // A symbol in the language
+		Function,  // A function application
+		Tuple      // A tuple
+	};
 
-	Expression() {
+	// Constant are pre-defined symbols such as
+	//      [Numbers]      1, 1/2, \pi
+	//      [Operator]     +, -, x, /, exp, sin, cos, ...
+	// and are given standard bindings upon evaluation.
+	// Non-constant symbols are variables like x, y, F.
+	static Expression Add;
+	static Expression Subtract;
+	static Expression Multiply;
+	static Expression Divide;
+	static Expression FuncSine;
+
+	Kind kind;                           // kind of the expression
+	Type *type;                          // type of the expression, currently unused
+	const char *name;                    // name of the symbol, if kind is Symbol
+	LTList<Expression*> *subexpressions; // subexpressions for Function and Tuple kind
+
+	// Construct an uninitialized expression of given kind
+	Expression(Kind kind) {
+		this->kind = kind;
 		subexpressions = nullptr;
-		type = nullptr;
+	}
+
+	// Construct a new Symbol in the language with specified name
+	Expression(const char *name) : kind(Kind::Symbol) {
+		this->name = name;
 	}
 
 	template<typename ...Ts>
@@ -63,59 +89,79 @@ public:
 		return nullptr;
 	}
 
-	virtual void print() {
-		printExpressionList(subexpressions);
+	// Print this expression to standard output
+	void print() {
+		switch (kind) {
+		case Kind::Symbol:
+			printf("%s", name);
+			break;
+
+		case Kind::Function:
+			printExpressionList("   ", subexpressions);
+			break;
+
+		case Kind::Tuple:
+			printf("(");
+			printExpressionList(" , ", subexpressions);
+			printf(")");
+			break;
+		}
+	}
+
+	// Helper method to make Tuple expression
+	template<typename T, typename ...Ts>
+	static Expression* makeTuple(T first, Ts ...rest) {
+		auto result = new Expression(Expression::Kind::Tuple);
+		result->subexpressions = new LTList<Expression*>(first, rest...);
+
+		return result;
+	}
+
+	// Helper method to make Function application expressions
+	static Expression* makeFunction(Expression *func, Expression *args) {
+		auto result = new Expression(Expression::Kind::Function);
+		result->subexpressions = new LTList<Expression*>(func, args);
+
+		return result;
 	}
 
 	Expression* operator+(Expression const& another);
 
 private:
-	void printExpressionList(LTList<Expression*> *expressions) {
+	// Helper method to print out a list of expressions, separated by given string
+	static void printExpressionList(const char* separator, LTList<Expression*> *expressions) {
 		if (expressions != nullptr) {
 			expressions->data->print();
-			printf(" ");
-			printExpressionList(expressions->next);
+			if (expressions->next != nullptr) {
+				printf("%s", separator);
+				printExpressionList(separator, expressions->next);
+			}
 		}
 	}
 };
 
-// A symbol in our language.
-class Symbol : public Expression {
+// Declaration of our predefined constants for overloadable basic arithmetic operators
+Expression Expression::Add("+");
+Expression Expression::Subtract("-");
+Expression Expression::Multiply("x");
+Expression Expression::Divide("/");
+Expression Expression::FuncSine("sin");
+
+// For math functions like sin, cos, ...; we subclasses from Expressions.
+// This way, we could write
+//        Expression* E = Sin(x);
+// in the program.
+class Sin : public Expression {
 public:
-	const char *name;
-
-	Symbol(const char *name) {
-		this->name = name;
-	}
-
-	virtual void print() { printf("%s", name); }
-};
-
-// Constant are pre-defined symbols such as
-//      [Numbers]      1, 1/2, \pi
-//      [Operator]     +, -, x, /, exp, sin, cos, ...
-// and are given standard bindings upon evaluation.
-// Non-constant symbols are variables like x, y, F.
-class Constant : public Symbol {
-public:
-	static Constant Add;
-	static Constant Subtract;
-	static Constant Multiply;
-	static Constant Divide;
-
-	Constant(const char *name) : Symbol(name) {
-		this->name = name;
+	Sin(Expression &arg) : Expression(Kind::Function) {
+		this->subexpressions = new LTList<Expression*>(&FuncSine, &arg);
 	}
 };
-
-Constant Constant::Add("+");
-Constant Constant::Subtract("-");
-Constant Constant::Multiply("x");
-Constant Constant::Divide("/");
 
 Expression* Expression::operator+(Expression const& another) {
-	auto result = new Expression();
-	result->subexpressions = new LTList<Expression*>(&Constant::Add, this, const_cast<Expression*>(&another));
+	auto args = makeTuple(this, const_cast<Expression*>(&another));
+	auto result = makeFunction(&Expression::Add, args);
+
 	return result;
 }
 
