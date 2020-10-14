@@ -66,6 +66,7 @@ public:
 	static Expression Subtract;
 	static Expression Multiply;
 	static Expression Divide;
+	static Expression Exponentiation;
 	static Expression FuncSine;
 
 	Kind kind;                           // kind of the expression
@@ -126,6 +127,10 @@ public:
 	}
 
 	Expression* operator+(Expression const& another);
+	Expression* operator-(Expression const& another);
+	Expression* operator*(Expression const& another);
+	Expression* operator/(Expression const& another);
+	Expression* operator^(Expression const& another);
 
 private:
 	// Helper method to print out a list of expressions, separated by given string
@@ -145,6 +150,7 @@ Expression Expression::Add("+");
 Expression Expression::Subtract("-");
 Expression Expression::Multiply("x");
 Expression Expression::Divide("/");
+Expression Expression::Exponentiation("^");
 Expression Expression::FuncSine("sin");
 
 // For math functions like sin, cos, ...; we subclasses from Expressions.
@@ -158,11 +164,16 @@ public:
 	}
 };
 
-Expression* Expression::operator+(Expression const& another) {
-	auto args = makeTuple(this, const_cast<Expression*>(&another));
-	auto result = makeFunction(&Expression::Add, args);
-
-	return result;
+#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression* Expression::operator Op (Expression const& another) {\
+	auto args = makeTuple(this, const_cast<Expression*>(&another));\
+	auto result = makeFunction(&OpExpr, args);\
+	return result;\
 }
+
+_IMPLEMENT_OPERATOR(+, Expression::Add)
+_IMPLEMENT_OPERATOR(-, Expression::Subtract)
+_IMPLEMENT_OPERATOR(*, Expression::Multiply)
+_IMPLEMENT_OPERATOR(/, Expression::Divide)
+_IMPLEMENT_OPERATOR(^, Expression::Exponentiation)
 
 #endif

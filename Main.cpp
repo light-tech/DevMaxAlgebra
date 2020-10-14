@@ -9,7 +9,7 @@ int main(int argc, const char **argv)
 {
 	Expression x("x");
 	Expression y("y");
-	auto E = x + y;
+	auto E = (*(x + y)) ^ x;
 
 	if (E != nullptr) {
 		printf("E = ");
