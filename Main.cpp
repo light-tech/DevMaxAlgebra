@@ -17,9 +17,9 @@ int main(int argc, const char **argv)
 	}
 
 	printf("\n");
-	auto F = Sin(x);
+	auto F = Sin(x) + Cos(x);
 	printf("F = ");
-	F.print();
+	F->print();
 
 	return 0;
 }

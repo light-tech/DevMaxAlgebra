@@ -67,7 +67,11 @@ public:
 	static Expression Multiply;
 	static Expression Divide;
 	static Expression Exponentiation;
-	static Expression FuncSine;
+	static Expression FuncSin;
+	static Expression FuncCos;
+	static Expression FuncTan;
+	static Expression FuncExp;
+	static Expression FuncLn;
 
 	Kind kind;                           // kind of the expression
 	Type *type;                          // type of the expression, currently unused
@@ -151,18 +155,11 @@ Expression Expression::Subtract("-");
 Expression Expression::Multiply("x");
 Expression Expression::Divide("/");
 Expression Expression::Exponentiation("^");
-Expression Expression::FuncSine("sin");
-
-// For math functions like sin, cos, ...; we subclasses from Expressions.
-// This way, we could write
-//        Expression* E = Sin(x);
-// in the program.
-class Sin : public Expression {
-public:
-	Sin(Expression &arg) : Expression(Kind::Function) {
-		this->subexpressions = new LTList<Expression*>(&FuncSine, &arg);
-	}
-};
+Expression Expression::FuncSin("sin");
+Expression Expression::FuncCos("cos");
+Expression Expression::FuncTan("tan");
+Expression Expression::FuncExp("exp");
+Expression Expression::FuncLn("ln");
 
 #define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression* Expression::operator Op (Expression const& another) {\
 	auto args = makeTuple(this, const_cast<Expression*>(&another));\
@@ -175,5 +172,23 @@ _IMPLEMENT_OPERATOR(-, Expression::Subtract)
 _IMPLEMENT_OPERATOR(*, Expression::Multiply)
 _IMPLEMENT_OPERATOR(/, Expression::Divide)
 _IMPLEMENT_OPERATOR(^, Expression::Exponentiation)
+
+// For math functions like sin, cos, ...; we subclasses from Expressions.
+// This way, we could write
+//        auto E = Sin(x);
+// in the program. The implementation looks pretty much the same so we make
+// a macro to do so for many functions.
+#define _DECLARE_STANDARD_FUNCTION_APPLICATION(FunctionName) class FunctionName : public Expression {\
+public:\
+	FunctionName(Expression &arg) : Expression(Kind::Function) {\
+		this->subexpressions = new LTList<Expression*>(&Func ## FunctionName, &arg);\
+	}\
+};
+
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Sin)
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Cos)
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Tan)
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Exp)
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Ln)
 
 #endif
