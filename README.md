@@ -19,7 +19,7 @@ Example Program:
 
     auto F = Sin(x) + Cos(x);
     printf("F = ");
-	F.print();
+    F.print();
 
     E.evaluate(Bind(x, 5), Bind(y, 2)); // 7
 ```

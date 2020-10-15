@@ -190,7 +190,7 @@ _IMPLEMENT_OPERATOR(^, Expression::Exponentiation)
 // a macro to do so for many functions.
 #define _DECLARE_STANDARD_FUNCTION_APPLICATION(FunctionName) class FunctionName : public Expression {\
 public:\
-	FunctionName(Expression &arg) : Expression(Kind::FunctionApply) {\
+	FunctionName(Expression const& arg) : Expression(Kind::FunctionApply) {\
 		this->subexpressions = new LTList<Expression>(Func ## FunctionName, arg);\
 	}\
 };
