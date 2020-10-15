@@ -89,6 +89,13 @@ public:
 		this->name = name;
 	}
 
+	// Construct constant expression for an integer
+	Expression(int n) : kind(Kind::Symbol) {
+		char buf[20];
+		_itoa(n, buf, 10);
+		this->name = _strdup(buf);
+	}
+
 	template<typename ...Ts>
 	Expression* evaluate() {
 		return nullptr;
@@ -113,7 +120,13 @@ public:
 		}
 	}
 
-	// Helper method to make Tuple expression
+	Expression operator+(Expression const& another);
+	Expression operator-(Expression const& another);
+	Expression operator*(Expression const& another);
+	Expression operator/(Expression const& another);
+	Expression operator^(Expression const& another);
+
+	// Static helper method to make Tuple expression
 	template<typename T, typename ...Ts>
 	static Expression* makeTuple(T first, Ts ...rest) {
 		auto result = new Expression(Expression::Kind::Tuple);
@@ -122,19 +135,13 @@ public:
 		return result;
 	}
 
-	// Helper method to make Function application expressions
+	// Static helper method to make Function application expressions
 	static Expression makeFunction(Expression *func, Expression *args) {
 		Expression result(Expression::Kind::Function);
 		result.subexpressions = new LTList<Expression*>(func, args);
 
 		return result;
 	}
-
-	Expression operator+(Expression const& another);
-	Expression operator-(Expression const& another);
-	Expression operator*(Expression const& another);
-	Expression operator/(Expression const& another);
-	Expression operator^(Expression const& another);
 
 private:
 	// Helper method to print out a list of expressions, separated by given string
@@ -152,7 +159,7 @@ private:
 // Declaration of our predefined constants for overloadable basic arithmetic operators
 Expression Expression::Add("+");
 Expression Expression::Subtract("-");
-Expression Expression::Multiply("x");
+Expression Expression::Multiply("*"); // Must not use 'x' for this could cause confusion with variable x
 Expression Expression::Divide("/");
 Expression Expression::Exponentiation("^");
 Expression Expression::FuncSin("sin");
@@ -164,6 +171,11 @@ Expression Expression::FuncLn("ln");
 #define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression Expression::operator Op (Expression const& another) {\
 	auto args = makeTuple(this, const_cast<Expression*>(&another));\
 	auto result = makeFunction(&OpExpr, args);\
+	return result;\
+}\
+Expression operator Op (Expression const& first, Expression const& second) {\
+	auto args = Expression::makeTuple(const_cast<Expression*>(&first), const_cast<Expression*>(&second));\
+	auto result = Expression::makeFunction(&OpExpr, args);\
 	return result;\
 }
 

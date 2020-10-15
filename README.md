@@ -12,7 +12,7 @@ Example Program:
 ```C++
     Expression x("x");
     Expression y("y");
-    auto E = (x + y) ^ x;
+    auto E = (2 * x + y) ^ x;
 
     printf("E = ");
     E.print();
