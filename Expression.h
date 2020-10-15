@@ -123,18 +123,18 @@ public:
 	}
 
 	// Helper method to make Function application expressions
-	static Expression* makeFunction(Expression *func, Expression *args) {
-		auto result = new Expression(Expression::Kind::Function);
-		result->subexpressions = new LTList<Expression*>(func, args);
+	static Expression makeFunction(Expression *func, Expression *args) {
+		Expression result(Expression::Kind::Function);
+		result.subexpressions = new LTList<Expression*>(func, args);
 
 		return result;
 	}
 
-	Expression* operator+(Expression const& another);
-	Expression* operator-(Expression const& another);
-	Expression* operator*(Expression const& another);
-	Expression* operator/(Expression const& another);
-	Expression* operator^(Expression const& another);
+	Expression operator+(Expression const& another);
+	Expression operator-(Expression const& another);
+	Expression operator*(Expression const& another);
+	Expression operator/(Expression const& another);
+	Expression operator^(Expression const& another);
 
 private:
 	// Helper method to print out a list of expressions, separated by given string
@@ -161,7 +161,7 @@ Expression Expression::FuncTan("tan");
 Expression Expression::FuncExp("exp");
 Expression Expression::FuncLn("ln");
 
-#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression* Expression::operator Op (Expression const& another) {\
+#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression Expression::operator Op (Expression const& another) {\
 	auto args = makeTuple(this, const_cast<Expression*>(&another));\
 	auto result = makeFunction(&OpExpr, args);\
 	return result;\

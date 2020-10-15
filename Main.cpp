@@ -9,17 +9,15 @@ int main(int argc, const char **argv)
 {
 	Expression x("x");
 	Expression y("y");
-	auto E = (*(x + y)) ^ x;
+	auto E = (x + y) ^ x;
 
-	if (E != nullptr) {
-		printf("E = ");
-		E->print();
-	}
-
+	printf("E = ");
+	E.print();
 	printf("\n");
+
 	auto F = Sin(x) + Cos(x);
 	printf("F = ");
-	F->print();
+	F.print();
 
 	return 0;
 }
