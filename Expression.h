@@ -52,31 +52,19 @@ public:
 
 	// Kind of the expression corresponding to the base case and recursion
 	enum Kind {
-		Symbol,    // A symbol in the language
-		Function,  // A function application
-		Tuple      // A tuple
+		Symbol,         // A symbol in the language
+		FunctionApply,  // A function application
+		Tuple,          // A tuple
 	};
-
-	// Constant are pre-defined symbols such as
-	//      [Numbers]      1, 1/2, \pi
-	//      [Operator]     +, -, x, /, exp, sin, cos, ...
-	// and are given standard bindings upon evaluation.
-	// Non-constant symbols are variables like x, y, F.
-	static Expression Add;
-	static Expression Subtract;
-	static Expression Multiply;
-	static Expression Divide;
-	static Expression Exponentiation;
-	static Expression FuncSin;
-	static Expression FuncCos;
-	static Expression FuncTan;
-	static Expression FuncExp;
-	static Expression FuncLn;
 
 	Kind kind;                           // kind of the expression
 	Type *type;                          // type of the expression, currently unused
 	const char *name;                    // name of the symbol, if kind is Symbol
-	LTList<Expression*> *subexpressions; // subexpressions for Function and Tuple kind
+	LTList<Expression> *subexpressions;  // subexpressions for Function and Tuple kind
+
+	// Default constructor so that we can use LTList<Expression>
+	Expression() : kind(Kind::Symbol), name("?unknown?") {
+	}
 
 	// Construct an uninitialized expression of given kind
 	Expression(Kind kind) {
@@ -97,7 +85,7 @@ public:
 	}
 
 	template<typename ...Ts>
-	Expression* evaluate() {
+	Expression evaluate() {
 		return nullptr;
 	}
 
@@ -108,8 +96,10 @@ public:
 			printf("%s", name);
 			break;
 
-		case Kind::Function:
+		case Kind::FunctionApply:
+			printf("[");
 			printExpressionList("   ", subexpressions);
+			printf("]");
 			break;
 
 		case Kind::Tuple:
@@ -120,34 +110,42 @@ public:
 		}
 	}
 
-	Expression operator+(Expression const& another);
-	Expression operator-(Expression const& another);
-	Expression operator*(Expression const& another);
-	Expression operator/(Expression const& another);
-	Expression operator^(Expression const& another);
+	// Pre-defined symbols in the language for common math operators and functions
+	//      +, -, x, /, exp, sin, cos, ...
+	// These objects are given standard bindings upon evaluation.
+	static Expression Add;
+	static Expression Subtract;
+	static Expression Multiply;
+	static Expression Divide;
+	static Expression Exponentiation;
+	static Expression FuncSin;
+	static Expression FuncCos;
+	static Expression FuncTan;
+	static Expression FuncExp;
+	static Expression FuncLn;
 
 	// Static helper method to make Tuple expression
 	template<typename T, typename ...Ts>
-	static Expression* makeTuple(T first, Ts ...rest) {
-		auto result = new Expression(Expression::Kind::Tuple);
-		result->subexpressions = new LTList<Expression*>(first, rest...);
+	static Expression makeTuple(T first, Ts ...rest) {
+		Expression result(Kind::Tuple);
+		result.subexpressions = new LTList<Expression>(first, rest...);
 
 		return result;
 	}
 
 	// Static helper method to make Function application expressions
-	static Expression makeFunction(Expression *func, Expression *args) {
-		Expression result(Expression::Kind::Function);
-		result.subexpressions = new LTList<Expression*>(func, args);
+	static Expression makeFunctionApplication(Expression const& func, Expression const& args) {
+		Expression result(Kind::FunctionApply);
+		result.subexpressions = new LTList<Expression>(func, args);
 
 		return result;
 	}
 
 private:
 	// Helper method to print out a list of expressions, separated by given string
-	static void printExpressionList(const char* separator, LTList<Expression*> *expressions) {
+	static void printExpressionList(const char* separator, LTList<Expression> *expressions) {
 		if (expressions != nullptr) {
-			expressions->data->print();
+			expressions->data.print();
 			if (expressions->next != nullptr) {
 				printf("%s", separator);
 				printExpressionList(separator, expressions->next);
@@ -168,14 +166,14 @@ Expression Expression::FuncTan("tan");
 Expression Expression::FuncExp("exp");
 Expression Expression::FuncLn("ln");
 
-#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression Expression::operator Op (Expression const& another) {\
-	auto args = makeTuple(this, const_cast<Expression*>(&another));\
-	auto result = makeFunction(&OpExpr, args);\
-	return result;\
-}\
-Expression operator Op (Expression const& first, Expression const& second) {\
-	auto args = Expression::makeTuple(const_cast<Expression*>(&first), const_cast<Expression*>(&second));\
-	auto result = Expression::makeFunction(&OpExpr, args);\
+// To allow for writing 'x + y' in C++ where 'x', 'y' are Expression, we define
+// the global operators in the following signature:
+//      Expression operator+(Expression const&, Expression const&);
+// We make a macro to do this for many operators at once.
+
+#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression operator Op (Expression const& first, Expression const& second) {\
+	auto args = Expression::makeTuple(first, second);\
+	auto result = Expression::makeFunctionApplication(OpExpr, args);\
 	return result;\
 }
 
@@ -185,15 +183,15 @@ _IMPLEMENT_OPERATOR(*, Expression::Multiply)
 _IMPLEMENT_OPERATOR(/, Expression::Divide)
 _IMPLEMENT_OPERATOR(^, Expression::Exponentiation)
 
-// For math functions like sin, cos, ...; we subclasses from Expressions.
+// For math functions like sin, cos, ...; we make subclasses from Expressions.
 // This way, we could write
-//        auto E = Sin(x);
+//        Expression E = Sin(x);
 // in the program. The implementation looks pretty much the same so we make
 // a macro to do so for many functions.
 #define _DECLARE_STANDARD_FUNCTION_APPLICATION(FunctionName) class FunctionName : public Expression {\
 public:\
-	FunctionName(Expression &arg) : Expression(Kind::Function) {\
-		this->subexpressions = new LTList<Expression*>(&Func ## FunctionName, &arg);\
+	FunctionName(Expression &arg) : Expression(Kind::FunctionApply) {\
+		this->subexpressions = new LTList<Expression>(Func ## FunctionName, arg);\
 	}\
 };
 
