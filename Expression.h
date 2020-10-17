@@ -97,6 +97,7 @@ public:
 	static Expression OpMultiply;
 	static Expression OpDivide;
 	static Expression OpExponentiation;
+	static Expression FuncSqrt;
 	static Expression FuncSin;
 	static Expression FuncCos;
 	static Expression FuncTan;
@@ -127,6 +128,7 @@ Expression Expression::OpSubtract("-");
 Expression Expression::OpMultiply("*"); // Must not use 'x' for this could cause confusion with variable x
 Expression Expression::OpDivide("/");
 Expression Expression::OpExponentiation("^");
+Expression Expression::FuncSqrt("sqrt");
 Expression Expression::FuncSin("sin");
 Expression Expression::FuncCos("cos");
 Expression Expression::FuncTan("tan");
@@ -138,17 +140,17 @@ Expression Expression::FuncLn("ln");
 //      Expression operator+(Expression const&, Expression const&);
 // We make a macro to do this for many operators at once.
 
-#define _IMPLEMENT_OPERATOR(Op, OpExpr) Expression operator Op (Expression const& first, Expression const& second) {\
+#define _IMPLEMENT_EXPRESSION_OPERATOR(Op, OpExpr) Expression operator Op (Expression const& first, Expression const& second) {\
 	auto args = Expression::makeTuple(first, second);\
 	auto result = Expression::makeFunctionApplication(OpExpr, args);\
 	return result;\
 }
 
-_IMPLEMENT_OPERATOR(+, Expression::OpAdd)
-_IMPLEMENT_OPERATOR(-, Expression::OpSubtract)
-_IMPLEMENT_OPERATOR(*, Expression::OpMultiply)
-_IMPLEMENT_OPERATOR(/, Expression::OpDivide)
-_IMPLEMENT_OPERATOR(^, Expression::OpExponentiation)
+_IMPLEMENT_EXPRESSION_OPERATOR(+, Expression::OpAdd)
+_IMPLEMENT_EXPRESSION_OPERATOR(-, Expression::OpSubtract)
+_IMPLEMENT_EXPRESSION_OPERATOR(*, Expression::OpMultiply)
+_IMPLEMENT_EXPRESSION_OPERATOR(/, Expression::OpDivide)
+_IMPLEMENT_EXPRESSION_OPERATOR(^, Expression::OpExponentiation)
 
 // For math functions like sin, cos, ...; we make subclasses from Expressions.
 // This way, we could write
@@ -162,6 +164,7 @@ public:\
 	}\
 };
 
+_DECLARE_STANDARD_FUNCTION_APPLICATION(Sqrt)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Sin)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Cos)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Tan)
