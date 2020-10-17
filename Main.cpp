@@ -13,7 +13,7 @@ int main(int argc, const char **argv)
 	Expression x("x");        // Make variable named x
 	Expression y("y");        // Make variable named y
 
-	auto E = (2 * x + y)^x; // Construct math expression (2x + y) ^ x + 1
+	auto E = (2 * x + y) / x; // Construct a simple math expression
 	printf("E = ");
 	printLaTeX(E);
 	printf("\n");

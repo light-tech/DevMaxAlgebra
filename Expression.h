@@ -220,7 +220,7 @@ static void printLaTeX(Expression const& expr) {
 		// rendering multiplication 'x' as nothing and special
 		// functions.
 		if (expr.subexpressions == nullptr) {
-			printf("<ERROR>");
+			printf("<ERROR: Function Application Without Data>");
 			return;
 		}
 
@@ -234,19 +234,41 @@ static void printLaTeX(Expression const& expr) {
 				auto args = expr.subexpressions->next->data;
 				auto op = func.name;
 				if (op == "*") op = ""; // Suppress multiplication symbol
-				printf("{\\left(");
+
+				bool is_frac = (op == "/");
+
+				if (is_frac)
+					printf("\\frac{");
+				else
+					printf("{\\left(");
+
 				ForEach([=](Expression const& e, bool is_last) {
 					printLaTeX(e);
 					if (!is_last)
-						printf("%s", op);
+						printf("%s", is_frac ? "}{" : op);
 				}, args.subexpressions);
-				printf("\\right)}");
+
+				if (is_frac)
+					printf("}");
+				else
+					printf("\\right)}");
+
+				return;
+			}
+
+			// Standard functions, add backslash
+			if (func.name == "sqrt" || func.name == "sin" ||
+				func.name == "cos" || func.name == "tan" ||
+				func.name == "exp" || func.name == "ln") {
+				printf("\\%s{( ", func.name);
+				printLaTeX(expr.subexpressions->next->data);
+				printf(" )}");
 				return;
 			}
 		} else
-			printf("<EXPECT FUNCTION TO BE A SYMBOL>");
+			printf("<WARNING: AT THE MOMENT, EXPECT FUNCTION TO BE A SYMBOL>");
 
-		// Otherwise, we are in generic function situation
+		// Otherwise, we are in generic function situation like f(x)
 		ForEach([](Expression const& e, bool is_last) {
 			printLaTeX(e);
 			if (!is_last) printf(" ");
