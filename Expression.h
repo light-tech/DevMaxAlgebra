@@ -69,7 +69,7 @@ public:
 	};
 
 	Kind kind;                           // kind of the expression
-	//Type *type;                          // type of the expression, currently unused
+	//Type *type;                        // type of the expression, currently unused
 	const char *name;                    // name of the symbol, if kind is Symbol
 	LTList<Expression> *subexpressions;  // subexpressions for Function and Tuple kind
 
@@ -182,7 +182,7 @@ _DECLARE_STANDARD_FUNCTION_APPLICATION(Tan)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Exp)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Ln)
 
-// Print expression to standard output
+// Print expression to standard output in prefix notation
 static void print(Expression const& expr) {
 	switch (expr.kind) {
 	case Expression::Kind::Symbol:
@@ -203,6 +203,64 @@ static void print(Expression const& expr) {
 			if (!is_last) printf(", ");
 		}, expr.subexpressions);
 		printf(")");
+		break;
+	}
+}
+
+// Print expression in TeX
+// TODO Should have customization for each symbol like \alpha
+static void printLaTeX(Expression const& expr) {
+	switch (expr.kind) {
+	case Expression::Kind::Symbol:
+		printf("%s", expr.name);
+		break;
+
+	case Expression::Kind::FunctionApply: {
+		// We want to account for infix operators like +,
+		// rendering multiplication 'x' as nothing and special
+		// functions.
+		if (expr.subexpressions == nullptr) {
+			printf("<ERROR>");
+			return;
+		}
+
+		auto func = expr.subexpressions->data;
+		auto funcname = func.name;
+		if (func.kind == Expression::Kind::Symbol) {
+			if (func.name == "+" || func.name == "-" ||
+				func.name == "*" || func.name == "/" ||
+				func.name == "^") {
+				// Print as infix operators
+				auto args = expr.subexpressions->next->data;
+				auto op = func.name;
+				if (op == "*") op = ""; // Suppress multiplication symbol
+				printf("{\\left(");
+				ForEach([=](Expression const& e, bool is_last) {
+					printLaTeX(e);
+					if (!is_last)
+						printf("%s", op);
+				}, args.subexpressions);
+				printf("\\right)}");
+				return;
+			}
+		} else
+			printf("<EXPECT FUNCTION TO BE A SYMBOL>");
+
+		// Otherwise, we are in generic function situation
+		ForEach([](Expression const& e, bool is_last) {
+			printLaTeX(e);
+			if (!is_last) printf(" ");
+		}, expr.subexpressions);
+	}
+		break;
+
+	case Expression::Kind::Tuple:
+		printf("\\left(");
+		ForEach([](Expression const& e, bool is_last) {
+			printLaTeX(e);
+			if (!is_last) printf(", ");
+		}, expr.subexpressions);
+		printf("\\right)");
 		break;
 	}
 }
