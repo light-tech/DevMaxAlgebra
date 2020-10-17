@@ -30,6 +30,17 @@ public:
 	LTList<TElement> *next;
 };
 
+// Template method to perform action on each element of a list
+// The action should take an TElement and a bool indicating whether
+// that was the last element of the list
+template<typename TElement, typename TAction>
+void ForEach(TAction action, LTList<TElement> *list) {
+	if(list != nullptr) {
+		action(list->data, list->next == nullptr);
+		ForEach(action, list->next);
+	}
+}
+
 // Mathematically, expressions are defined recursively:
 //  - Base case: constants and variables are expressions
 //  - Induction: if E is a k-ary function expression then
@@ -45,10 +56,10 @@ public:
 // the familiar 1 + x.
 class Expression {
 public:
-	class Type {
+	/*class Type {
 		int classification; // Number, Set, Function, ...
 		int arity;          // Tuples
-	};
+	};*/
 
 	// Kind of the expression corresponding to the base case and recursion
 	enum Kind {
@@ -58,7 +69,7 @@ public:
 	};
 
 	Kind kind;                           // kind of the expression
-	Type *type;                          // type of the expression, currently unused
+	//Type *type;                          // type of the expression, currently unused
 	const char *name;                    // name of the symbol, if kind is Symbol
 	LTList<Expression> *subexpressions;  // subexpressions for Function and Tuple kind
 
@@ -171,19 +182,6 @@ _DECLARE_STANDARD_FUNCTION_APPLICATION(Tan)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Exp)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Ln)
 
-static void print(Expression const& expr);
-
-// Helper method to print out a list of expressions, separated by given string
-static void printExpressionList(const char* separator, LTList<Expression> *expressions) {
-	if (expressions != nullptr) {
-		print(expressions->data);
-		if (expressions->next != nullptr) {
-			printf("%s", separator);
-			printExpressionList(separator, expressions->next);
-		}
-	}
-}
-
 // Print expression to standard output
 static void print(Expression const& expr) {
 	switch (expr.kind) {
@@ -192,14 +190,18 @@ static void print(Expression const& expr) {
 		break;
 
 	case Expression::Kind::FunctionApply:
-		//printf("[");
-		printExpressionList("   ", expr.subexpressions);
-		//printf("]");
+		ForEach([](Expression const& e, bool is_last) {
+			print(e);
+			if (!is_last) printf(" ");
+		}, expr.subexpressions);
 		break;
 
 	case Expression::Kind::Tuple:
 		printf("(");
-		printExpressionList(" , ", expr.subexpressions);
+		ForEach([](Expression const& e, bool is_last) {
+			print(e);
+			if (!is_last) printf(", ");
+		}, expr.subexpressions);
 		printf(")");
 		break;
 	}
