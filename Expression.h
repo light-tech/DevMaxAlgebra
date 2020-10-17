@@ -89,35 +89,14 @@ public:
 		return nullptr;
 	}
 
-	// Print this expression to standard output
-	void print() {
-		switch (kind) {
-		case Kind::Symbol:
-			printf("%s", name);
-			break;
-
-		case Kind::FunctionApply:
-			printf("[");
-			printExpressionList("   ", subexpressions);
-			printf("]");
-			break;
-
-		case Kind::Tuple:
-			printf("(");
-			printExpressionList(" , ", subexpressions);
-			printf(")");
-			break;
-		}
-	}
-
 	// Pre-defined symbols in the language for common math operators and functions
 	//      +, -, x, /, exp, sin, cos, ...
 	// These objects are given standard bindings upon evaluation.
-	static Expression Add;
-	static Expression Subtract;
-	static Expression Multiply;
-	static Expression Divide;
-	static Expression Exponentiation;
+	static Expression OpAdd;
+	static Expression OpSubtract;
+	static Expression OpMultiply;
+	static Expression OpDivide;
+	static Expression OpExponentiation;
 	static Expression FuncSin;
 	static Expression FuncCos;
 	static Expression FuncTan;
@@ -140,26 +119,14 @@ public:
 
 		return result;
 	}
-
-private:
-	// Helper method to print out a list of expressions, separated by given string
-	static void printExpressionList(const char* separator, LTList<Expression> *expressions) {
-		if (expressions != nullptr) {
-			expressions->data.print();
-			if (expressions->next != nullptr) {
-				printf("%s", separator);
-				printExpressionList(separator, expressions->next);
-			}
-		}
-	}
 };
 
 // Declaration of our predefined constants for overloadable basic arithmetic operators
-Expression Expression::Add("+");
-Expression Expression::Subtract("-");
-Expression Expression::Multiply("*"); // Must not use 'x' for this could cause confusion with variable x
-Expression Expression::Divide("/");
-Expression Expression::Exponentiation("^");
+Expression Expression::OpAdd("+");
+Expression Expression::OpSubtract("-");
+Expression Expression::OpMultiply("*"); // Must not use 'x' for this could cause confusion with variable x
+Expression Expression::OpDivide("/");
+Expression Expression::OpExponentiation("^");
 Expression Expression::FuncSin("sin");
 Expression Expression::FuncCos("cos");
 Expression Expression::FuncTan("tan");
@@ -177,11 +144,11 @@ Expression Expression::FuncLn("ln");
 	return result;\
 }
 
-_IMPLEMENT_OPERATOR(+, Expression::Add)
-_IMPLEMENT_OPERATOR(-, Expression::Subtract)
-_IMPLEMENT_OPERATOR(*, Expression::Multiply)
-_IMPLEMENT_OPERATOR(/, Expression::Divide)
-_IMPLEMENT_OPERATOR(^, Expression::Exponentiation)
+_IMPLEMENT_OPERATOR(+, Expression::OpAdd)
+_IMPLEMENT_OPERATOR(-, Expression::OpSubtract)
+_IMPLEMENT_OPERATOR(*, Expression::OpMultiply)
+_IMPLEMENT_OPERATOR(/, Expression::OpDivide)
+_IMPLEMENT_OPERATOR(^, Expression::OpExponentiation)
 
 // For math functions like sin, cos, ...; we make subclasses from Expressions.
 // This way, we could write
@@ -200,5 +167,39 @@ _DECLARE_STANDARD_FUNCTION_APPLICATION(Cos)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Tan)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Exp)
 _DECLARE_STANDARD_FUNCTION_APPLICATION(Ln)
+
+static void print(Expression const& expr);
+
+// Helper method to print out a list of expressions, separated by given string
+static void printExpressionList(const char* separator, LTList<Expression> *expressions) {
+	if (expressions != nullptr) {
+		print(expressions->data);
+		if (expressions->next != nullptr) {
+			printf("%s", separator);
+			printExpressionList(separator, expressions->next);
+		}
+	}
+}
+
+// Print expression to standard output
+static void print(Expression const& expr) {
+	switch (expr.kind) {
+	case Expression::Kind::Symbol:
+		printf("%s", expr.name);
+		break;
+
+	case Expression::Kind::FunctionApply:
+		//printf("[");
+		printExpressionList("   ", expr.subexpressions);
+		//printf("]");
+		break;
+
+	case Expression::Kind::Tuple:
+		printf("(");
+		printExpressionList(" , ", expr.subexpressions);
+		printf(")");
+		break;
+	}
+}
 
 #endif
